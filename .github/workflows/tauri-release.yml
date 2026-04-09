@@ -55,4 +55,4 @@ jobs:
           releaseBody: "Automated multi-platform release for ${{ github.ref_name }}"
           releaseDraft: false
           prerelease: false
-          tauriScript: npm run tauri:build
+          tauriScript: npm run tauri
