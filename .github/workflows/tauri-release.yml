@@ -3,14 +3,50 @@ name: Tauri Release
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     tags:
       - "v*"
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
+  ci-build:
+    if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
   publish-tauri:
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     strategy:
       fail-fast: false
       matrix:
@@ -24,12 +60,59 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+
+      - name: Validate release versions
+        shell: bash
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          TAURI_VERSION="$(node -p "require('./src-tauri/tauri.conf.json').version")"
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+
+          echo "Tag version:     $TAG_VERSION"
+          echo "Tauri version:   $TAURI_VERSION"
+          echo "Package version: $PACKAGE_VERSION"
+
+          if [ "$TAG_VERSION" != "$TAURI_VERSION" ] || [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "Version mismatch. Use the same version in tag, src-tauri/tauri.conf.json and package.json."
+            exit 1
+          fi
+
+      - name: Generate release notes from commits
+        id: notes
+        shell: bash
+        run: |
+          CURRENT_TAG="${GITHUB_REF_NAME}"
+          PREV_TAG="$(git tag --sort=-v:refname | grep -v "^${CURRENT_TAG}$" | head -n 1 || true)"
+          if [ -n "$PREV_TAG" ]; then
+            RANGE="${PREV_TAG}..${CURRENT_TAG}"
+            TITLE="Изменения с ${PREV_TAG} по ${CURRENT_TAG}"
+          else
+            RANGE="${CURRENT_TAG}"
+            TITLE="Первый релиз ${CURRENT_TAG}"
+          fi
+
+          NOTES="$(git log --no-merges --pretty=format:'- %s (%h)' "$RANGE")"
+          if [ -z "$NOTES" ]; then
+            NOTES="- Технический релиз без заметных изменений."
+          fi
+
+          {
+            echo "release_body<<EOF"
+            echo "${TITLE}"
+            echo
+            echo "${NOTES}"
+            echo
+            echo "Полный список файлов доступен в assets релиза."
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Install Linux dependencies
         if: matrix.platform == 'ubuntu-22.04'
@@ -52,7 +135,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "Obaika Tracker ${{ github.ref_name }}"
-          releaseBody: "Automated multi-platform release for ${{ github.ref_name }}"
+          releaseBody: ${{ steps.notes.outputs.release_body }}
           releaseDraft: false
           prerelease: false
           tauriScript: npm run tauri

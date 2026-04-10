@@ -13,7 +13,7 @@ const AUTH_TOKEN_KEY_WEB = 'tracker-auth-token-v1';
 const AUTH_TOKEN_KEY_TAURI = 'tracker-auth-token-v1-tauri';
 const API_BASE_OVERRIDE_KEY_WEB = 'tracker-api-base-override-v1';
 const API_BASE_OVERRIDE_KEY_TAURI = 'tracker-api-base-override-v1-tauri';
-const DEFAULT_API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || 'http://backtodo.obaika.fun:3000').replace(/\/$/, '');
+const DEFAULT_API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || 'http://backtodo.obaika.fun').replace(/\/$/, '');
 
 const loading = ref(false);
 const savingGoal = ref(false);
@@ -39,6 +39,8 @@ const settingsError = ref('');
 const importingData = ref(false);
 const changingPassword = ref(false);
 const importFileInput = ref(null);
+const settingsOpen = ref(false);
+const settingsSection = ref('core');
 const passwordForm = reactive({
   oldPassword: '',
   newPassword: '',
@@ -71,7 +73,6 @@ const hwidMasked = computed(() => {
   if (hwid.value.length <= 12) return hwid.value;
   return `${hwid.value.slice(0, 8)}...${hwid.value.slice(-4)}`;
 });
-const requireAuth = computed(() => syncMode.value === 'online');
 
 const summaryCards = computed(() => [
   { title: 'Всего целей', value: summary.value.totalGoals },
@@ -577,6 +578,21 @@ async function logout() {
   }
 }
 
+function openSettings() {
+  settingsOpen.value = true;
+  clearSettingsMessages();
+}
+
+function closeSettings() {
+  settingsOpen.value = false;
+}
+
+function handleGlobalKeydown(event) {
+  if (event.key === 'Escape' && settingsOpen.value) {
+    closeSettings();
+  }
+}
+
 function clearSettingsMessages() {
   settingsMessage.value = '';
   settingsError.value = '';
@@ -834,11 +850,7 @@ async function syncLocalToRemoteIfNeeded() {
 
 async function api(path, options) {
   if (syncMode.value === 'online') {
-    if (!isAuthenticated.value) {
-      const authErr = new Error('Требуется авторизация.');
-      authErr.status = 401;
-      throw authErr;
-    }
+    if (!isAuthenticated.value) return localApi(path, options);
 
     try {
       return await remoteApi(path, options);
@@ -856,12 +868,7 @@ async function api(path, options) {
   if (isBrowserOnline()) {
     try {
       if (!isAuthenticated.value) {
-        await checkAuthStatus();
-      }
-      if (!isAuthenticated.value) {
-        const authErr = new Error('Требуется авторизация.');
-        authErr.status = 401;
-        throw authErr;
+        return localApi(path, options);
       }
       const remote = await remoteApi(path, options);
       syncMode.value = 'online';
@@ -901,23 +908,6 @@ async function loadNotesForGoals(goalIds) {
 }
 
 async function loadDashboard() {
-  if (requireAuth.value && !isAuthenticated.value) {
-    goals.value = [];
-    notesByGoal.value = {};
-    summary.value = {
-      totalGoals: 0,
-      completedGoals: 0,
-      activeGoals: 0,
-      completionRate: 0,
-      portfolioProgress: 0,
-      weekProgress: 0,
-      weekCheckins: 0,
-      monthProgress: 0,
-      monthCheckins: 0,
-    };
-    return;
-  }
-
   loading.value = true;
   error.value = '';
   try {
@@ -933,11 +923,6 @@ async function loadDashboard() {
 }
 
 async function createGoal() {
-  if (requireAuth.value && !isAuthenticated.value) {
-    error.value = 'Сначала авторизуйтесь.';
-    return;
-  }
-
   if (!goalForm.title.trim()) {
     error.value = 'Введите название цели';
     return;
@@ -964,11 +949,6 @@ async function createGoal() {
 }
 
 async function addCheckin({ goalId, amount, note }) {
-  if (requireAuth.value && !isAuthenticated.value) {
-    error.value = 'Сначала авторизуйтесь.';
-    return;
-  }
-
   error.value = '';
   try {
     await api(`/api/goals/${goalId}/checkins`, {
@@ -983,11 +963,6 @@ async function addCheckin({ goalId, amount, note }) {
 }
 
 async function toggleDone(goal) {
-  if (requireAuth.value && !isAuthenticated.value) {
-    error.value = 'Сначала авторизуйтесь.';
-    return;
-  }
-
   const nextStatus = goal.isDone ? 'active' : 'done';
   try {
     await api(`/api/goals/${goal.id}`, {
@@ -1002,11 +977,6 @@ async function toggleDone(goal) {
 }
 
 async function removeGoal(id) {
-  if (requireAuth.value && !isAuthenticated.value) {
-    error.value = 'Сначала авторизуйтесь.';
-    return;
-  }
-
   error.value = '';
   try {
     await api(`/api/goals/${id}`, { method: 'DELETE' });
@@ -1042,6 +1012,7 @@ onMounted(() => {
 
   window.addEventListener('offline', handleOffline);
   window.addEventListener('online', handleOnline);
+  window.addEventListener('keydown', handleGlobalKeydown);
 
   detectOnlineSync()
     .then(async (isOnline) => {
@@ -1060,151 +1031,159 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('offline', handleOffline);
   window.removeEventListener('online', handleOnline);
+  window.removeEventListener('keydown', handleGlobalKeydown);
 });
 </script>
 
 <template>
   <main class="page">
-    <section class="hero">
-      <div class="hero-top">
-        <p class="season">Тема сезона</p>
-        <div class="hero-actions">
-          <button class="theme-toggle" type="button" @click="toggleTheme">
-            {{ theme === 'dark' ? 'Светлая тема' : 'Темная тема' }}
-          </button>
-          <button
-            v-if="requireAuth && isAuthenticated"
-            class="secondary"
-            type="button"
-            @click="logout"
-          >
-            Выйти
-          </button>
-        </div>
-      </div>
-      <h1>Весенний перезапуск</h1>
-      <p class="subtitle">Личный цифровой трекер целей, прогресса и итогов</p>
-      <p class="sync-status" :class="syncMode">
-        {{ syncMode === 'online' ? 'Онлайн синхронизация' : 'Офлайн режим' }} · HWID: {{ hwidMasked }}
-      </p>
-    </section>
-
-    <section v-if="requireAuth && !isAuthenticated" class="card auth-card">
-      <h2>{{ authMode === 'register' ? 'Регистрация устройства' : 'Вход на устройство' }}</h2>
-      <p class="subtitle">
-        HWID: {{ hwidMasked }}. Пароль привязан к этому устройству.
-      </p>
-      <form class="goal-form" @submit.prevent="authMode === 'register' ? registerWithPassword() : loginWithPassword()">
-        <input
-          v-model="authForm.password"
-          type="password"
-          minlength="6"
-          placeholder="Введите пароль"
-          autocomplete="current-password"
-        />
-        <input
-          v-if="authMode === 'register'"
-          v-model="authForm.confirmPassword"
-          type="password"
-          minlength="6"
-          placeholder="Повторите пароль"
-          autocomplete="new-password"
-        />
-        <div class="row auth-row">
-          <button :disabled="authLoading" type="submit">
-            {{
-              authLoading
-                ? 'Проверка...'
-                : authMode === 'register'
-                  ? 'Создать пароль'
-                  : 'Войти'
-            }}
-          </button>
-          <button
-            class="secondary"
-            type="button"
-            :disabled="authLoading"
-            @click="authMode = authMode === 'register' ? 'login' : 'register'; authError = ''"
-          >
-            {{ authMode === 'register' ? 'У меня уже есть пароль' : 'Первая настройка' }}
-          </button>
-        </div>
-      </form>
-      <p v-if="authError" class="error">{{ authError }}</p>
-    </section>
-
-    <section class="card settings">
-      <header class="settings-head">
-        <h2>Настройки</h2>
-        <p>Сервис, синхронизация, безопасность и бэкап</p>
-      </header>
-
-      <div class="settings-grid">
-        <article class="settings-block">
-          <h3>Сервер синхронизации</h3>
-          <p class="subtitle">Текущий адрес backend для online режима.</p>
-          <input v-model="settingsForm.apiBaseUrl" type="text" placeholder="https://example.com:3000" />
-          <div class="settings-actions">
-            <button type="button" @click="saveApiSettings">Сохранить сервер</button>
-            <button class="secondary" type="button" @click="testConnection">Проверить</button>
-            <button class="secondary" type="button" @click="resetApiSettings">По умолчанию</button>
-          </div>
-        </article>
-
-        <article class="settings-block">
-          <h3>Данные устройства</h3>
-          <p class="subtitle">Экспорт и импорт локального бэкапа.</p>
-          <input
-            ref="importFileInput"
-            class="hidden-input"
-            type="file"
-            accept="application/json"
-            @change="handleImportData"
-          />
-          <div class="settings-actions">
-            <button type="button" @click="exportLocalData">Экспорт JSON</button>
-            <button class="secondary" type="button" :disabled="importingData" @click="requestImportData">
-              {{ importingData ? 'Импорт...' : 'Импорт JSON' }}
-            </button>
-            <button class="danger" type="button" @click="clearLocalData">Очистить локальные данные</button>
-          </div>
-        </article>
-
-        <article class="settings-block">
-          <h3>Синхронизация</h3>
-          <p class="subtitle">Ручной запуск синка и состояние доступа.</p>
-          <p class="settings-note">
-            Режим: {{ syncMode === 'online' ? 'online' : 'offline' }} ·
-            Авторизация: {{ isAuthenticated ? 'выполнена' : 'нет' }}
-          </p>
-          <div class="settings-actions">
-            <button type="button" @click="forceSyncNow">Синхронизировать сейчас</button>
-          </div>
-        </article>
-
-        <article class="settings-block" :class="{ disabled: !isAuthenticated || syncMode !== 'online' }">
-          <h3>Безопасность</h3>
-          <p class="subtitle">Смена пароля для текущего HWID.</p>
-          <input v-model="passwordForm.oldPassword" type="password" placeholder="Текущий пароль" />
-          <input v-model="passwordForm.newPassword" type="password" placeholder="Новый пароль" />
-          <input v-model="passwordForm.confirmPassword" type="password" placeholder="Повтор нового пароля" />
-          <div class="settings-actions">
-            <button
-              type="button"
-              :disabled="changingPassword || !isAuthenticated || syncMode !== 'online'"
-              @click="changePassword"
-            >
-              {{ changingPassword ? 'Сохранение...' : 'Сменить пароль' }}
-            </button>
-          </div>
-        </article>
+    <section class="hero app-topbar">
+      <div class="brand">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <p class="brand-title">Obaika Tracker <small>v0.1.1</small></p>
       </div>
 
-      <p v-if="settingsMessage" class="settings-success">{{ settingsMessage }}</p>
-      <p v-if="settingsError" class="error">{{ settingsError }}</p>
+      <div class="hero-actions">
+        <p class="sync-status" :class="syncMode">
+          {{ syncMode === 'online' ? 'Online' : 'Offline' }}
+        </p>
+        <button class="theme-toggle" type="button" @click="toggleTheme">
+          {{ theme === 'dark' ? 'Светлая' : 'Темная' }}
+        </button>
+        <button class="secondary" type="button" @click="openSettings">Настройки</button>
+        <button
+          v-if="isAuthenticated"
+          class="secondary"
+          type="button"
+          @click="logout"
+        >
+          Выйти
+        </button>
+      </div>
     </section>
 
-    <section v-if="!requireAuth || isAuthenticated" class="summary-grid">
+    <div v-if="settingsOpen" class="settings-overlay" @click.self="closeSettings">
+      <section class="settings-modal card">
+        <aside class="settings-sidebar">
+          <p>Настройки</p>
+          <button :class="{ active: settingsSection === 'core' }" type="button" @click="settingsSection = 'core'">Основные</button>
+          <button :class="{ active: settingsSection === 'sync' }" type="button" @click="settingsSection = 'sync'">Синхронизация</button>
+          <button :class="{ active: settingsSection === 'data' }" type="button" @click="settingsSection = 'data'">Данные</button>
+          <button :class="{ active: settingsSection === 'security' }" type="button" @click="settingsSection = 'security'">Безопасность</button>
+        </aside>
+
+        <div class="settings-content">
+          <header class="settings-head">
+            <h2>Параметры</h2>
+            <button class="secondary" type="button" @click="closeSettings">Закрыть</button>
+          </header>
+
+          <div class="settings-grid">
+            <article v-if="settingsSection === 'core'" class="settings-block">
+              <h3>Сервер синхронизации</h3>
+              <p class="subtitle">Текущий адрес backend для online режима.</p>
+              <input v-model="settingsForm.apiBaseUrl" type="text" placeholder="https://example.com:3000" />
+              <div class="settings-actions">
+                <button type="button" @click="saveApiSettings">Сохранить сервер</button>
+                <button class="secondary" type="button" @click="testConnection">Проверить</button>
+                <button class="secondary" type="button" @click="resetApiSettings">По умолчанию</button>
+              </div>
+            </article>
+
+            <article v-if="settingsSection === 'sync'" class="settings-block">
+              <h3>Синхронизация</h3>
+              <p class="subtitle">Ручной запуск синка и состояние доступа.</p>
+              <p class="settings-note">
+                Режим: {{ syncMode === 'online' ? 'online' : 'offline' }} ·
+                Авторизация: {{ isAuthenticated ? 'выполнена' : 'нет' }}
+              </p>
+              <div class="settings-actions">
+                <button type="button" @click="forceSyncNow">Синхронизировать сейчас</button>
+              </div>
+            </article>
+
+            <article v-if="settingsSection === 'data'" class="settings-block">
+              <h3>Данные устройства</h3>
+              <p class="subtitle">Экспорт и импорт локального бэкапа.</p>
+              <input
+                ref="importFileInput"
+                class="hidden-input"
+                type="file"
+                accept="application/json"
+                @change="handleImportData"
+              />
+              <div class="settings-actions">
+                <button type="button" @click="exportLocalData">Экспорт JSON</button>
+                <button class="secondary" type="button" :disabled="importingData" @click="requestImportData">
+                  {{ importingData ? 'Импорт...' : 'Импорт JSON' }}
+                </button>
+                <button class="danger" type="button" @click="clearLocalData">Очистить локальные данные</button>
+              </div>
+            </article>
+
+            <article v-if="settingsSection === 'security'" class="settings-block">
+              <h3>Безопасность</h3>
+              <p class="subtitle">Авторизация и пароль для текущего HWID.</p>
+
+              <template v-if="!isAuthenticated">
+                <form class="goal-form" @submit.prevent="authMode === 'register' ? registerWithPassword() : loginWithPassword()">
+                  <input
+                    v-model="authForm.password"
+                    type="password"
+                    minlength="6"
+                    placeholder="Введите пароль"
+                    autocomplete="current-password"
+                  />
+                  <input
+                    v-if="authMode === 'register'"
+                    v-model="authForm.confirmPassword"
+                    type="password"
+                    minlength="6"
+                    placeholder="Повторите пароль"
+                    autocomplete="new-password"
+                  />
+                  <div class="settings-actions">
+                    <button :disabled="authLoading" type="submit">
+                      {{ authLoading ? 'Проверка...' : authMode === 'register' ? 'Создать пароль' : 'Войти' }}
+                    </button>
+                    <button
+                      class="secondary"
+                      type="button"
+                      :disabled="authLoading"
+                      @click="authMode = authMode === 'register' ? 'login' : 'register'; authError = ''"
+                    >
+                      {{ authMode === 'register' ? 'У меня уже есть пароль' : 'Первая настройка' }}
+                    </button>
+                  </div>
+                </form>
+                <p v-if="authError" class="error">{{ authError }}</p>
+              </template>
+
+              <template v-else>
+                <input v-model="passwordForm.oldPassword" type="password" placeholder="Текущий пароль" />
+                <input v-model="passwordForm.newPassword" type="password" placeholder="Новый пароль" />
+                <input v-model="passwordForm.confirmPassword" type="password" placeholder="Повтор нового пароля" />
+                <div class="settings-actions">
+                  <button
+                    type="button"
+                    :disabled="changingPassword || syncMode !== 'online'"
+                    @click="changePassword"
+                  >
+                    {{ changingPassword ? 'Сохранение...' : 'Сменить пароль' }}
+                  </button>
+                  <button class="secondary" type="button" @click="logout">Выйти</button>
+                </div>
+              </template>
+            </article>
+          </div>
+
+          <p v-if="settingsMessage" class="settings-success">{{ settingsMessage }}</p>
+          <p v-if="settingsError" class="error">{{ settingsError }}</p>
+        </div>
+      </section>
+    </div>
+
+    <section class="summary-grid">
       <MetricCard v-for="card in summaryCards" :key="card.title" :title="card.title" :value="card.value" />
 
       <MetricCard title="Прогресс портфеля целей" :wide="true">
@@ -1220,7 +1199,7 @@ onBeforeUnmount(() => {
       </MetricCard>
     </section>
 
-    <section v-if="!requireAuth || isAuthenticated" class="card creator">
+    <section class="card creator">
       <h2>Добавить цель</h2>
       <form class="goal-form" @submit.prevent="createGoal">
         <input v-model="goalForm.title" type="text" placeholder="Например: Читать каждый день" />
@@ -1238,7 +1217,7 @@ onBeforeUnmount(() => {
       <p v-if="error" class="error">{{ error }}</p>
     </section>
 
-    <section v-if="!requireAuth || isAuthenticated" class="goals">
+    <section class="goals">
       <header>
         <h2>Мои цели</h2>
         <p>Выполнено сейчас: {{ doneGoals }} / {{ goals.length }}</p>
