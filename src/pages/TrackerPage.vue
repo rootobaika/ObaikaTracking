@@ -1093,7 +1093,7 @@ onBeforeUnmount(() => {
     <section class="hero app-topbar">
       <div class="brand">
         <span class="brand-dot" aria-hidden="true"></span>
-        <p class="brand-title">Obaika Tracker <small>v0.1.1</small></p>
+        <p class="brand-title">Obaika Tracker <small>v0.1.3</small></p>
       </div>
 
       <div class="hero-actions">
@@ -1104,7 +1104,7 @@ onBeforeUnmount(() => {
         <button class="theme-toggle" type="button" @click="toggleTheme">
           {{ theme === 'dark' ? 'Светлая' : 'Темная' }}
         </button>
-        <button class="secondary" type="button" @click="openSettings">Настройки</button>
+        <button class="secondary settings-trigger" type="button" @click="openSettings">Настройки</button>
         <button
           v-if="isAuthenticated"
           class="secondary"
@@ -1363,5 +1363,13 @@ onBeforeUnmount(() => {
         @remove-goal="removeGoal"
       />
     </section>
+
+    <button
+      class="mobile-settings-fab"
+      type="button"
+      @click="openSettings"
+    >
+      Настройки
+    </button>
   </main>
 </template>

@@ -1,8 +1,8 @@
 :root {
-  --bg-base: #eef5ec;
-  --bg-pattern-a: rgba(97, 173, 116, 0.2);
-  --bg-pattern-b: rgba(252, 210, 123, 0.26);
-  --bg-pattern-c: rgba(67, 161, 139, 0.14);
+  --bg-base: #050a17;
+  --bg-pattern-a: rgba(255, 132, 77, 0.2);
+  --bg-pattern-b: rgba(72, 209, 183, 0.18);
+  --bg-pattern-c: rgba(110, 151, 255, 0.14);
   --surface: rgba(255, 255, 255, 0.86);
   --surface-soft: rgba(248, 252, 246, 0.9);
   --surface-muted: rgba(245, 250, 243, 0.92);
@@ -25,10 +25,10 @@
 }
 
 :root[data-theme='dark'] {
-  --bg-base: #0d1518;
-  --bg-pattern-a: rgba(77, 165, 126, 0.22);
-  --bg-pattern-b: rgba(227, 168, 84, 0.2);
-  --bg-pattern-c: rgba(89, 138, 194, 0.2);
+  --bg-base: #040915;
+  --bg-pattern-a: rgba(255, 132, 77, 0.2);
+  --bg-pattern-b: rgba(72, 209, 183, 0.18);
+  --bg-pattern-c: rgba(110, 151, 255, 0.14);
   --surface: rgba(20, 33, 37, 0.88);
   --surface-soft: rgba(22, 38, 43, 0.9);
   --surface-muted: rgba(18, 31, 36, 0.9);
@@ -55,7 +55,11 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--bg-base);
+  background:
+    radial-gradient(1200px 700px at 8% -10%, var(--bg-pattern-a), transparent 60%),
+    radial-gradient(1100px 680px at 100% 0%, var(--bg-pattern-b), transparent 62%),
+    linear-gradient(160deg, var(--bg-base) 0%, #081127 50%, #040915 100%);
+  background-attachment: fixed;
   color: var(--text);
   position: relative;
   overflow-x: hidden;
@@ -72,18 +76,29 @@ body::after {
 
 body::before {
   background:
-    radial-gradient(55vmax 32vmax at 8% 8%, var(--bg-pattern-a), transparent 70%),
-    radial-gradient(52vmax 30vmax at 92% 5%, var(--bg-pattern-b), transparent 72%),
-    radial-gradient(45vmax 26vmax at 50% 100%, var(--bg-pattern-c), transparent 70%);
-  filter: blur(2px);
+    conic-gradient(
+      from 80deg at 50% 50%,
+      rgba(255, 125, 70, 0.2),
+      rgba(255, 208, 120, 0.07),
+      rgba(58, 220, 188, 0.18),
+      rgba(131, 164, 255, 0.1),
+      rgba(255, 125, 70, 0.2)
+    );
+  filter: blur(32px);
+  opacity: 0.34;
 }
 
 body::after {
   background-image:
-    linear-gradient(120deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(300deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 42px 42px, 64px 64px;
-  opacity: 0.55;
+    repeating-linear-gradient(
+      130deg,
+      rgba(255, 255, 255, 0.03) 0px,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 16px
+    );
+  opacity: 0.15;
+  mix-blend-mode: screen;
 }
 
 .page {
@@ -572,6 +587,10 @@ button:hover {
   background: linear-gradient(120deg, #d65e5e, #c24040);
 }
 
+.mobile-settings-fab {
+  display: none;
+}
+
 .error {
   color: #d96464;
   margin: 10px 0 0;
@@ -691,6 +710,11 @@ button:hover {
 }
 
 @media (max-width: 900px) {
+  .page {
+    padding: 16px 16px calc(96px + env(safe-area-inset-bottom, 0px));
+    gap: 12px;
+  }
+
   .summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -732,6 +756,10 @@ button:hover {
     align-items: stretch;
   }
 
+  .settings-trigger {
+    display: none;
+  }
+
   .welcome-badges {
     flex-direction: column;
   }
@@ -748,7 +776,12 @@ button:hover {
 
   .settings-modal {
     grid-template-columns: 1fr;
-    max-height: 92vh;
+    width: 100%;
+    max-height: min(84vh, 760px);
+    border-radius: 20px 20px 0 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    animation: settings-sheet-show 220ms ease-out;
   }
 
   .settings-sidebar {
@@ -767,6 +800,39 @@ button:hover {
     display: none;
   }
 
+  .settings-overlay {
+    align-items: end;
+    place-items: end stretch;
+    padding: 12px 0 0;
+  }
+
+  .mobile-settings-fab {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 25;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    border: 1px solid rgba(82, 136, 93, 0.26);
+    box-shadow: 0 14px 30px rgba(14, 37, 23, 0.34);
+    padding: 13px 16px;
+    font-weight: 700;
+  }
+
+}
+
+@keyframes settings-sheet-show {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
