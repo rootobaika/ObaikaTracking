@@ -13,7 +13,7 @@ const AUTH_TOKEN_KEY_WEB = 'tracker-auth-token-v1';
 const AUTH_TOKEN_KEY_TAURI = 'tracker-auth-token-v1-tauri';
 const API_BASE_OVERRIDE_KEY_WEB = 'tracker-api-base-override-v1';
 const API_BASE_OVERRIDE_KEY_TAURI = 'tracker-api-base-override-v1-tauri';
-const DEFAULT_API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || 'http://backtodo.obaika.fun').replace(/\/$/, '');
+const DEFAULT_API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || 'https://backtodo.obaika.fun').replace(/\/$/, '');
 
 const loading = ref(false);
 const savingGoal = ref(false);
@@ -151,6 +151,15 @@ function getApiBaseOverrideStorageKey() {
 
 function normalizeApiBaseUrl(value) {
   return String(value || '').trim().replace(/\/$/, '');
+}
+
+function getFriendlyNetworkError() {
+  const apiUrl = String(currentApiBaseUrl.value || '');
+  const isHttpsPage = typeof window !== 'undefined' && window.location?.protocol === 'https:';
+  if (isHttpsPage && apiUrl.startsWith('http://')) {
+    return 'Network unavailable: сайт открыт по HTTPS, а backend указан через HTTP. Используй https:// адрес сервера.';
+  }
+  return 'Network unavailable';
 }
 
 function loadApiBaseUrl() {
@@ -468,7 +477,7 @@ async function remoteApi(path, options) {
         signal: controller.signal,
       });
     } catch (err) {
-      const networkErr = new Error('Network unavailable');
+      const networkErr = new Error(getFriendlyNetworkError());
       networkErr.isNetworkError = true;
       throw networkErr;
     }
