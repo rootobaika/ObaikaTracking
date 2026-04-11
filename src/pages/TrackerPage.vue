@@ -1135,8 +1135,9 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
-    <div v-if="settingsOpen" class="settings-overlay" @click.self="closeSettings">
-      <section class="settings-modal card">
+    <Teleport to="body">
+      <div v-if="settingsOpen" class="settings-overlay" @click.self="closeSettings">
+        <section class="settings-modal card">
         <aside class="settings-sidebar">
           <p>Настройки</p>
           <button :class="{ active: settingsSection === 'core' }" type="button" @click="setSettingsSection('core')">
@@ -1335,7 +1336,8 @@ onBeforeUnmount(() => {
           <p v-if="settingsError" class="error">{{ settingsError }}</p>
         </div>
       </section>
-    </div>
+      </div>
+    </Teleport>
 
     <section class="summary-grid">
       <MetricCard v-for="card in summaryCards" :key="card.title" :title="card.title" :value="card.value" />
