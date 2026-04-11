@@ -1177,7 +1177,7 @@ onBeforeUnmount(() => {
     <section class="hero app-topbar">
       <div class="brand">
         <span class="brand-dot" aria-hidden="true"></span>
-        <p class="brand-title">Obaika Tracker <small>v0.1.4</small></p>
+        <p class="brand-title">Obaika Tracker <small>v0.1.5</small></p>
       </div>
 
       <div class="hero-actions">
@@ -1241,7 +1241,7 @@ onBeforeUnmount(() => {
               Безопасность
             </button>
           </nav>
-          <div class="settings-version">v0.1.4</div>
+          <div class="settings-version">v0.1.5</div>
         </aside>
 
         <div class="settings-content">
