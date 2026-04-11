@@ -168,10 +168,28 @@
   --shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
 }
 
-:root[data-theme='liquid'][data-liquid-glass='true'] {
-  --surface: rgba(255, 255, 255, 0.72);
-  --surface-soft: rgba(255, 255, 255, 0.5);
-  --surface-muted: rgba(255, 255, 255, 0.35);
+:root[data-theme='liquid-dark'] {
+  --bg-base: #0a0a1a;
+  --bg-pattern-a: rgba(139, 92, 246, 0.15);
+  --bg-pattern-b: rgba(59, 130, 246, 0.12);
+  --bg-pattern-c: rgba(236, 72, 153, 0.1);
+  --surface: rgba(30, 30, 60, 0.6);
+  --surface-soft: rgba(40, 40, 80, 0.5);
+  --surface-muted: rgba(50, 50, 100, 0.4);
+  --text: #f0f0ff;
+  --muted: #9090c0;
+  --line: rgba(139, 92, 246, 0.25);
+  --accent: #a78bfa;
+  --accent-2: #f472b6;
+  --accent-3: #60a5fa;
+  --danger: #f87171;
+  --focus-ring: rgba(167, 139, 250, 0.3);
+  --bar-bg: rgba(139, 92, 246, 0.3);
+  --note-surface: rgba(40, 40, 80, 0.5);
+  --note-line: rgba(139, 92, 246, 0.3);
+  --hero-bg: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.15) 50%, rgba(236, 72, 153, 0.1) 100%);
+  --hero-line: rgba(167, 139, 250, 0.3);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -197,6 +215,14 @@ body {
     radial-gradient(ellipse 60% 40% at 80% 80%, rgba(236, 72, 153, 0.12), transparent 50%),
     radial-gradient(ellipse 70% 50% at 50% 50%, rgba(59, 130, 246, 0.1), transparent 60%),
     linear-gradient(180deg, #faf5ff 0%, #f3e8ff 30%, #e9d5ff 70%, #ddd6fe 100%);
+}
+
+:root[data-theme='liquid-dark'] body {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(139, 92, 246, 0.2), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(236, 72, 153, 0.15), transparent 50%),
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(59, 130, 246, 0.12), transparent 60%),
+    linear-gradient(180deg, #0a0a1a 0%, #0f0f2a 30%, #0a0a20 70%, #050510 100%);
 }
 
 body::before,
@@ -230,6 +256,23 @@ body::before {
   filter: blur(60px);
   opacity: 1;
   animation: liquid-shift 20s ease-in-out infinite;
+}
+
+:root[data-theme='liquid-dark'] body::before {
+  background:
+    radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.35), transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(236, 72, 153, 0.3), transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.2), transparent 60%);
+  filter: blur(80px);
+  opacity: 1;
+  animation: liquid-shift-dark 25s ease-in-out infinite;
+}
+
+@keyframes liquid-shift-dark {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-3%, 2%) scale(1.05); }
+  50% { transform: translate(2%, -3%) scale(0.95); }
+  75% { transform: translate(-2%, -2%) scale(1.02); }
 }
 
 @keyframes liquid-shift {
@@ -669,6 +712,50 @@ h1 {
     0 8px 20px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
     inset 0 -1px 0 rgba(139, 92, 246, 0.1);
+}
+
+:root[data-theme='liquid-dark'] .card {
+  background: linear-gradient(
+    145deg,
+    rgba(30, 30, 60, 0.7),
+    rgba(20, 20, 50, 0.5)
+  );
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(139, 92, 246, 0.1),
+    inset 0 1px 0 rgba(167, 139, 250, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+:root[data-theme='liquid-dark'] .card::before {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(139, 92, 246, 0.3),
+    transparent
+  );
+}
+
+:root[data-theme='liquid-dark'] .card::after {
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.15) 0%,
+    transparent 40%,
+    rgba(236, 72, 153, 0.05) 100%
+  );
+}
+
+:root[data-theme='liquid-dark'] .card:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 
+    0 20px 50px rgba(139, 92, 246, 0.25),
+    0 8px 20px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(167, 139, 250, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  border-color: rgba(167, 139, 250, 0.4);
 }
 
 .metric {

@@ -91,6 +91,7 @@ const themes = [
   { id: 'midnight', name: 'Полночь', color: '#9c5fff', icon: 'star' },
   { id: 'forest', name: 'Лес', color: '#66bb6a', icon: 'tree' },
   { id: 'liquid', name: 'Liquid Glass', color: '#8b5cf6', icon: 'diamond' },
+  { id: 'liquid-dark', name: 'Liquid Dark', color: '#a78bfa', icon: 'moon' },
 ];
 
 const sectionSubsections = {
