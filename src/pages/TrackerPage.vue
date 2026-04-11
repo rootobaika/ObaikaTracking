@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import GoalCard from '../components/GoalCard.vue';
 import MetricCard from '../components/MetricCard.vue';
 
@@ -41,11 +41,13 @@ const changingPassword = ref(false);
 const importFileInput = ref(null);
 const settingsOpen = ref(false);
 const settingsSection = ref('core');
+const settingsSubsection = ref('server');
 const passwordForm = reactive({
   oldPassword: '',
   newPassword: '',
   confirmPassword: '',
 });
+const goalTitleInput = ref(null);
 const goals = ref([]);
 const notesByGoal = ref({});
 const summary = ref({
@@ -80,6 +82,28 @@ const summaryCards = computed(() => [
   { title: 'Активные', value: summary.value.activeGoals },
   { title: 'Процент закрытия', value: `${summary.value.completionRate}%` },
 ]);
+
+const sectionSubsections = {
+  core: [
+    { id: 'server', label: 'Сервер' },
+    { id: 'appearance', label: 'Внешний вид' },
+    { id: 'quick', label: 'Быстрый старт' },
+  ],
+  sync: [
+    { id: 'status', label: 'Статус' },
+    { id: 'manual', label: 'Ручной режим' },
+  ],
+  data: [
+    { id: 'backup', label: 'Бэкап' },
+    { id: 'storage', label: 'Хранилище' },
+  ],
+  security: [
+    { id: 'auth', label: 'Вход' },
+    { id: 'password', label: 'Пароль' },
+  ],
+};
+
+const activeSubsections = computed(() => sectionSubsections[settingsSection.value] || []);
 
 function applyTheme(nextTheme) {
   theme.value = nextTheme;
@@ -587,11 +611,31 @@ function closeSettings() {
   settingsOpen.value = false;
 }
 
+function setSettingsSection(nextSection) {
+  settingsSection.value = nextSection;
+}
+
+function focusCreateGoal() {
+  const target = goalTitleInput.value;
+  if (!target) return;
+  target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  target.focus();
+}
+
 function handleGlobalKeydown(event) {
   if (event.key === 'Escape' && settingsOpen.value) {
     closeSettings();
   }
 }
+
+watch(
+  () => settingsSection.value,
+  (nextSection) => {
+    const next = sectionSubsections[nextSection]?.[0]?.id;
+    settingsSubsection.value = next || 'server';
+  },
+  { immediate: true }
+);
 
 function clearSettingsMessages() {
   settingsMessage.value = '';
@@ -1047,6 +1091,7 @@ onBeforeUnmount(() => {
         <p class="sync-status" :class="syncMode">
           {{ syncMode === 'online' ? 'Online' : 'Offline' }}
         </p>
+        <button type="button" @click="focusCreateGoal">Новая цель</button>
         <button class="theme-toggle" type="button" @click="toggleTheme">
           {{ theme === 'dark' ? 'Светлая' : 'Темная' }}
         </button>
@@ -1062,14 +1107,26 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
+    <section class="card welcome-card">
+      <div>
+        <h1>Добро пожаловать в твой трекер</h1>
+        <p class="subtitle">Создавай цели, отмечай прогресс и держи фокус на том, что важно каждый день.</p>
+      </div>
+      <div class="welcome-badges">
+        <span>Локально и безопасно</span>
+        <span>Синхронизация по HWID</span>
+        <span>Бэкап в 1 клик</span>
+      </div>
+    </section>
+
     <div v-if="settingsOpen" class="settings-overlay" @click.self="closeSettings">
       <section class="settings-modal card">
         <aside class="settings-sidebar">
           <p>Настройки</p>
-          <button :class="{ active: settingsSection === 'core' }" type="button" @click="settingsSection = 'core'">Основные</button>
-          <button :class="{ active: settingsSection === 'sync' }" type="button" @click="settingsSection = 'sync'">Синхронизация</button>
-          <button :class="{ active: settingsSection === 'data' }" type="button" @click="settingsSection = 'data'">Данные</button>
-          <button :class="{ active: settingsSection === 'security' }" type="button" @click="settingsSection = 'security'">Безопасность</button>
+          <button :class="{ active: settingsSection === 'core' }" type="button" @click="setSettingsSection('core')">Основные</button>
+          <button :class="{ active: settingsSection === 'sync' }" type="button" @click="setSettingsSection('sync')">Синхронизация</button>
+          <button :class="{ active: settingsSection === 'data' }" type="button" @click="setSettingsSection('data')">Данные</button>
+          <button :class="{ active: settingsSection === 'security' }" type="button" @click="setSettingsSection('security')">Безопасность</button>
         </aside>
 
         <div class="settings-content">
@@ -1078,8 +1135,21 @@ onBeforeUnmount(() => {
             <button class="secondary" type="button" @click="closeSettings">Закрыть</button>
           </header>
 
+          <div class="settings-subtabs">
+            <button
+              v-for="sub in activeSubsections"
+              :key="sub.id"
+              class="subtab-btn"
+              :class="{ active: settingsSubsection === sub.id }"
+              type="button"
+              @click="settingsSubsection = sub.id"
+            >
+              {{ sub.label }}
+            </button>
+          </div>
+
           <div class="settings-grid">
-            <article v-if="settingsSection === 'core'" class="settings-block">
+            <article v-if="settingsSection === 'core' && settingsSubsection === 'server'" class="settings-block">
               <h3>Сервер синхронизации</h3>
               <p class="subtitle">Текущий адрес backend для online режима.</p>
               <input v-model="settingsForm.apiBaseUrl" type="text" placeholder="https://example.com:3000" />
@@ -1090,19 +1160,43 @@ onBeforeUnmount(() => {
               </div>
             </article>
 
-            <article v-if="settingsSection === 'sync'" class="settings-block">
+            <article v-if="settingsSection === 'core' && settingsSubsection === 'appearance'" class="settings-block">
+              <h3>Внешний вид</h3>
+              <p class="subtitle">Подстрой интерфейс под себя.</p>
+              <div class="settings-actions">
+                <button class="theme-toggle" type="button" @click="toggleTheme">
+                  {{ theme === 'dark' ? 'Светлая тема' : 'Темная тема' }}
+                </button>
+              </div>
+            </article>
+
+            <article v-if="settingsSection === 'core' && settingsSubsection === 'quick'" class="settings-block">
+              <h3>Быстрый старт</h3>
+              <p class="subtitle">Действия, которые чаще всего нужны каждый день.</p>
+              <div class="settings-actions">
+                <button type="button" @click="focusCreateGoal">Создать новую цель</button>
+                <button class="secondary" type="button" @click="loadDashboard">Обновить дашборд</button>
+              </div>
+            </article>
+
+            <article v-if="settingsSection === 'sync' && settingsSubsection === 'status'" class="settings-block">
               <h3>Синхронизация</h3>
               <p class="subtitle">Ручной запуск синка и состояние доступа.</p>
               <p class="settings-note">
                 Режим: {{ syncMode === 'online' ? 'online' : 'offline' }} ·
                 Авторизация: {{ isAuthenticated ? 'выполнена' : 'нет' }}
               </p>
+            </article>
+
+            <article v-if="settingsSection === 'sync' && settingsSubsection === 'manual'" class="settings-block">
+              <h3>Ручной режим</h3>
+              <p class="subtitle">Запусти синхронизацию вручную в любой момент.</p>
               <div class="settings-actions">
                 <button type="button" @click="forceSyncNow">Синхронизировать сейчас</button>
               </div>
             </article>
 
-            <article v-if="settingsSection === 'data'" class="settings-block">
+            <article v-if="settingsSection === 'data' && settingsSubsection === 'backup'" class="settings-block">
               <h3>Данные устройства</h3>
               <p class="subtitle">Экспорт и импорт локального бэкапа.</p>
               <input
@@ -1121,7 +1215,14 @@ onBeforeUnmount(() => {
               </div>
             </article>
 
-            <article v-if="settingsSection === 'security'" class="settings-block">
+            <article v-if="settingsSection === 'data' && settingsSubsection === 'storage'" class="settings-block">
+              <h3>Хранилище</h3>
+              <p class="subtitle">Идентификатор устройства и текущий сервер.</p>
+              <p class="settings-note">HWID: {{ hwidMasked }}</p>
+              <p class="settings-note">Backend: {{ currentApiBaseUrl }}</p>
+            </article>
+
+            <article v-if="settingsSection === 'security' && settingsSubsection === 'auth'" class="settings-block">
               <h3>Безопасность</h3>
               <p class="subtitle">Авторизация и пароль для текущего HWID.</p>
 
@@ -1160,6 +1261,18 @@ onBeforeUnmount(() => {
               </template>
 
               <template v-else>
+                <p class="settings-note">Авторизация выполнена для этого устройства.</p>
+                <div class="settings-actions">
+                  <button class="secondary" type="button" @click="logout">Выйти</button>
+                </div>
+              </template>
+            </article>
+
+            <article v-if="settingsSection === 'security' && settingsSubsection === 'password'" class="settings-block">
+              <h3>Смена пароля</h3>
+              <p class="subtitle">Обнови пароль для текущего HWID.</p>
+
+              <template v-if="isAuthenticated">
                 <input v-model="passwordForm.oldPassword" type="password" placeholder="Текущий пароль" />
                 <input v-model="passwordForm.newPassword" type="password" placeholder="Новый пароль" />
                 <input v-model="passwordForm.confirmPassword" type="password" placeholder="Повтор нового пароля" />
@@ -1171,8 +1284,11 @@ onBeforeUnmount(() => {
                   >
                     {{ changingPassword ? 'Сохранение...' : 'Сменить пароль' }}
                   </button>
-                  <button class="secondary" type="button" @click="logout">Выйти</button>
                 </div>
+              </template>
+
+              <template v-else>
+                <p class="settings-note">Сначала войди в подразделе «Вход».</p>
               </template>
             </article>
           </div>
@@ -1202,7 +1318,7 @@ onBeforeUnmount(() => {
     <section class="card creator">
       <h2>Добавить цель</h2>
       <form class="goal-form" @submit.prevent="createGoal">
-        <input v-model="goalForm.title" type="text" placeholder="Например: Читать каждый день" />
+        <input ref="goalTitleInput" v-model="goalForm.title" type="text" placeholder="Например: Читать каждый день" />
         <textarea
           v-model="goalForm.description"
           rows="2"

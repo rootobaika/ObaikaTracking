@@ -137,8 +137,8 @@ body::after {
 }
 
 .app-topbar {
-  background: linear-gradient(180deg, #090e14, #060b12);
-  border: 1px solid rgba(153, 180, 194, 0.16);
+  background: linear-gradient(180deg, #f9fff7, #edf8ed);
+  border: 1px solid rgba(92, 138, 98, 0.22);
   border-radius: 12px;
   padding: 10px 12px;
   min-height: 52px;
@@ -165,14 +165,14 @@ body::after {
   width: 14px;
   height: 14px;
   border-radius: 999px;
-  background: radial-gradient(circle at 30% 30%, #f4f4f4, #9ea8b4 70%);
+  background: radial-gradient(circle at 30% 30%, #f8ffe4, #60b974 70%);
 }
 
 .brand-title {
   margin: 0;
   font-size: 24px;
   line-height: 1;
-  color: #d7e2ea;
+  color: #1f3b2a;
   font-weight: 700;
   letter-spacing: 0.01em;
 }
@@ -180,7 +180,7 @@ body::after {
 .brand-title small {
   font-size: 14px;
   margin-left: 6px;
-  color: #7f93a3;
+  color: #6a7f6f;
   font-weight: 500;
 }
 
@@ -195,6 +195,34 @@ body::after {
   font-size: 12px;
   border-radius: 999px;
   background: linear-gradient(120deg, var(--accent), var(--accent-3));
+}
+
+.welcome-card {
+  display: grid;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(248, 255, 245, 0.92), rgba(239, 251, 240, 0.86));
+}
+
+.welcome-card h1 {
+  margin: 0;
+  font-size: clamp(24px, 2.8vw, 34px);
+}
+
+.welcome-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.welcome-badges span {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .season {
@@ -251,6 +279,27 @@ h1 {
 :root[data-theme='dark'] .sync-status.offline {
   color: #ffd18f;
   background: rgba(240, 178, 95, 0.18);
+}
+
+:root[data-theme='dark'] .app-topbar {
+  background: linear-gradient(180deg, #111c22, #0d161b);
+  border-color: rgba(118, 158, 143, 0.32);
+}
+
+:root[data-theme='dark'] .brand-title {
+  color: #e0eee7;
+}
+
+:root[data-theme='dark'] .brand-title small {
+  color: #95afa1;
+}
+
+:root[data-theme='dark'] .welcome-card {
+  background: linear-gradient(135deg, rgba(20, 35, 34, 0.92), rgba(18, 31, 35, 0.86));
+}
+
+:root[data-theme='dark'] .welcome-badges span {
+  background: rgba(26, 40, 44, 0.78);
 }
 
 .summary-grid {
@@ -362,6 +411,27 @@ h1 {
   max-height: 80vh;
   overflow-y: auto;
   padding-right: 2px;
+}
+
+.settings-subtabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.subtab-btn {
+  border-radius: 999px;
+  border: 1px solid rgba(178, 203, 192, 0.45);
+  background: rgba(21, 33, 43, 0.74);
+  color: #cfe3d8;
+  padding: 6px 10px;
+}
+
+.subtab-btn.active {
+  border-color: rgba(143, 219, 183, 0.6);
+  background: rgba(56, 132, 97, 0.32);
+  color: #ecfff5;
 }
 
 .settings-head {
@@ -660,6 +730,10 @@ button:hover {
     width: 100%;
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .welcome-badges {
+    flex-direction: column;
   }
 
   .app-topbar {
