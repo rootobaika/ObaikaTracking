@@ -83,6 +83,16 @@ const summaryCards = computed(() => [
   { title: 'Процент закрытия', value: `${summary.value.completionRate}%` },
 ]);
 
+const themes = [
+  { id: 'light', name: 'Классическая', color: '#2d8a5a', icon: 'sun' },
+  { id: 'dark', name: 'Тёмная', color: '#40d090', icon: 'moon' },
+  { id: 'ocean', name: 'Океан', color: '#1976d2', icon: 'droplet' },
+  { id: 'sunset', name: 'Закат', color: '#ff5722', icon: 'sunset' },
+  { id: 'midnight', name: 'Полночь', color: '#9c5fff', icon: 'star' },
+  { id: 'forest', name: 'Лес', color: '#66bb6a', icon: 'tree' },
+  { id: 'liquid', name: 'Liquid Glass', color: '#8b5cf6', icon: 'diamond' },
+];
+
 const sectionSubsections = {
   core: [
     { id: 'server', label: 'Сервер', icon: 'globe' },
@@ -119,7 +129,13 @@ function applyTheme(nextTheme) {
 }
 
 function toggleTheme() {
-  applyTheme(theme.value === 'dark' ? 'light' : 'dark');
+  const currentIndex = themes.findIndex(t => t.id === theme.value);
+  const nextIndex = (currentIndex + 1) % themes.length;
+  applyTheme(themes[nextIndex].id);
+}
+
+function setTheme(themeId) {
+  applyTheme(themeId);
 }
 
 function toNumber(value, fallback = 0) {
@@ -408,6 +424,40 @@ async function localApi(path, options) {
       goal.status = newCurrent >= target ? 'done' : goal.status;
       goal.updatedAt = now;
 
+      writeDb(db);
+      return mapGoal(goal);
+    }
+
+    if (method === 'PATCH') {
+      const checkinId = Number(body.id);
+      const checkin = db.checkins.find((c) => c.id === checkinId && c.goalId === goalId);
+      if (!checkin) throw new Error('Checkin not found.');
+
+      if (body.note !== undefined) {
+        checkin.note = String(body.note).trim() || null;
+      }
+      if (body.amount !== undefined) {
+        const oldAmount = checkin.amount;
+        checkin.amount = Math.floor(toNumber(body.amount, oldAmount));
+        const diff = checkin.amount - oldAmount;
+        goal.current = Math.min(target, Math.max(0, goal.current + diff));
+        goal.status = goal.current >= target ? 'done' : 'active';
+      }
+      goal.updatedAt = now;
+      writeDb(db);
+      return mapGoal(goal);
+    }
+
+    if (method === 'DELETE') {
+      const deleteIdMatch = path.match(/\?deleteId=(\d+)/);
+      const deleteId = deleteIdMatch ? Number(deleteIdMatch[1]) : Number(path.split('/').pop());
+      const checkin = db.checkins.find((c) => c.id === deleteId && c.goalId === goalId);
+      if (!checkin) throw new Error('Checkin not found.');
+
+      goal.current = Math.max(0, goal.current - checkin.amount);
+      goal.status = goal.current >= target ? 'done' : 'active';
+      goal.updatedAt = now;
+      db.checkins = db.checkins.filter((c) => c.id !== deleteId);
       writeDb(db);
       return mapGoal(goal);
     }
@@ -1022,6 +1072,32 @@ async function addCheckin({ goalId, amount, note }) {
   }
 }
 
+async function editNote({ goalId, checkinId, note }) {
+  error.value = '';
+  try {
+    await api(`/api/goals/${goalId}/checkins`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: checkinId, note }),
+    });
+    await loadDashboard();
+  } catch (err) {
+    error.value = err.message;
+  }
+}
+
+async function deleteNote({ goalId, checkinId }) {
+  error.value = '';
+  try {
+    await api(`/api/goals/${goalId}/checkins?deleteId=${checkinId}`, {
+      method: 'DELETE',
+    });
+    await loadDashboard();
+  } catch (err) {
+    error.value = err.message;
+  }
+}
+
 async function toggleDone(goal) {
   const nextStatus = goal.isDone ? 'active' : 'done';
   try {
@@ -1113,9 +1189,9 @@ onBeforeUnmount(() => {
           Новая цель
         </button>
         <button class="theme-toggle" type="button" @click="toggleTheme">
-          <svg v-if="theme === 'dark'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-          <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          {{ theme === 'dark' ? 'Светлая' : 'Темная' }}
+          <svg v-if="theme === 'dark'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          {{ themes.find(t => t.id === theme)?.name }}
         </button>
         <button class="secondary" type="button" @click="openSettings">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -1210,13 +1286,32 @@ onBeforeUnmount(() => {
               </div>
             </article>
 
-            <article v-if="settingsSection === 'core' && settingsSubsection === 'appearance'" class="settings-block">
-              <h3>Внешний вид</h3>
-              <p class="subtitle">Подстрой интерфейс под себя.</p>
-              <div class="settings-actions">
-                <button class="theme-toggle" type="button" @click="toggleTheme">
-                  {{ theme === 'dark' ? 'Светлая тема' : 'Темная тема' }}
+            <article v-if="settingsSection === 'core' && settingsSubsection === 'appearance'" class="settings-block theme-selector">
+              <h3>Выбор темы</h3>
+              <p class="subtitle">Выбери внешний вид приложения</p>
+              <div class="theme-grid">
+                <button
+                  v-for="t in themes"
+                  :key="t.id"
+                  class="theme-option"
+                  :class="{ active: theme === t.id }"
+                  type="button"
+                  @click="setTheme(t.id)"
+                >
+                  <span class="theme-preview" :style="{ background: t.color }">
+                    <svg v-if="t.icon === 'sun'" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg v-if="t.icon === 'moon'" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    <svg v-if="t.icon === 'droplet'" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                    <svg v-if="t.icon === 'sunset'" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="9" x2="12" y2="2"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="1" y1="18" x2="3" y2="18"/><line x1="21" y1="18" x2="23" y2="18"/><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/><line x1="23" y1="22" x2="1" y2="22"/></svg>
+                    <svg v-if="t.icon === 'star'" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg v-if="t.icon === 'tree'" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22v-7l-2-2"/><path d="M17 8v.8A6 6 0 0 1 13.8 20v0H10v0A6.5 6.5 0 0 1 7 8h0a5 5 0 0 1 10 0Z"/><path d="m14 14-2 2"/></svg>
+                    <svg v-if="t.icon === 'diamond'" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>
+                  </span>
+                  <span class="theme-name">{{ t.name }}</span>
                 </button>
+              </div>
+              <div class="current-theme">
+                Текущая тема: <strong>{{ themes.find(t => t.id === theme)?.name }}</strong>
               </div>
             </article>
 
@@ -1403,6 +1498,8 @@ onBeforeUnmount(() => {
         @add-checkin="addCheckin"
         @toggle-done="toggleDone"
         @remove-goal="removeGoal"
+        @edit-note="editNote"
+        @delete-note="deleteNote"
       />
     </section>
 
