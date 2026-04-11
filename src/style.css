@@ -201,34 +201,67 @@ body::after {
 
 .hero-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
 }
 
 .hero-actions button {
-  padding: 10px 16px;
+  padding: 10px 18px;
   font-size: 13px;
+  font-weight: 600;
   border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 200ms ease;
+}
+
+.hero-actions button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.hero-actions button svg {
+  flex-shrink: 0;
 }
 
 .theme-toggle {
-  padding: 10px 16px;
+  padding: 10px 18px;
   font-size: 13px;
+  font-weight: 600;
   border-radius: 12px;
   background: linear-gradient(135deg, var(--accent), var(--accent-3));
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(56, 200, 123, 0.3);
 }
 
-.theme-toggle::before {
-  content: '';
-  width: 16px;
-  height: 16px;
+.theme-toggle:hover {
+  box-shadow: 0 6px 20px rgba(56, 200, 123, 0.4);
+}
+
+.sync-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid;
+}
+
+.sync-dot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: currentColor;
-  opacity: 0.9;
-  box-shadow: 0 0 8px currentColor;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .welcome-card {
@@ -246,17 +279,6 @@ body::after {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.welcome-badges span {
-  display: inline-flex;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-  background: rgba(255, 255, 255, 0.7);
 }
 
 .season {
@@ -280,29 +302,26 @@ h1 {
   max-width: 620px;
 }
 
-.sync-status {
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 9px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
 .sync-status.online {
   color: #0e613d;
-  background: rgba(69, 192, 122, 0.16);
-  border-color: rgba(48, 168, 101, 0.35);
+  background: rgba(69, 192, 122, 0.15);
+  border-color: rgba(48, 168, 101, 0.4);
+}
+
+.sync-status.online .sync-dot {
+  background: #38c87b;
+  box-shadow: 0 0 8px #38c87b;
 }
 
 .sync-status.offline {
   color: #7f4e11;
-  background: rgba(242, 184, 91, 0.18);
-  border-color: rgba(235, 168, 67, 0.34);
+  background: rgba(242, 184, 91, 0.15);
+  border-color: rgba(235, 168, 67, 0.4);
+}
+
+.sync-status.offline .sync-dot {
+  background: #f0b25f;
+  box-shadow: 0 0 8px #f0b25f;
 }
 
 :root[data-theme='dark'] .sync-status.online {
@@ -330,10 +349,6 @@ h1 {
 
 :root[data-theme='dark'] .welcome-card {
   background: linear-gradient(135deg, rgba(20, 35, 34, 0.92), rgba(18, 31, 35, 0.86));
-}
-
-:root[data-theme='dark'] .welcome-badges span {
-  background: rgba(26, 40, 44, 0.78);
 }
 
 .summary-grid {
@@ -938,11 +953,17 @@ button:hover {
 }
 
 .secondary {
-  background: linear-gradient(120deg, #89a975, #6a8f66);
+  background: linear-gradient(135deg, #6a8f66, #5a7f56);
 }
 
 .danger {
-  background: linear-gradient(120deg, #d65e5e, #c24040);
+  background: linear-gradient(135deg, #d65e5e, #c24040);
+  box-shadow: 0 4px 15px rgba(214, 94, 94, 0.3);
+}
+
+.danger:hover {
+  background: linear-gradient(135deg, #e06b6b, #d04545);
+  box-shadow: 0 6px 20px rgba(214, 94, 94, 0.4);
 }
 
 .mobile-settings-fab {
