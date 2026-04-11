@@ -1661,20 +1661,21 @@ button:active {
   padding: 12px 14px;
 }
 
-.notes {
+.notes-list {
   border-top: 1px solid var(--line);
   padding-top: 16px;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   background: transparent;
 }
 
-:root[data-theme='liquid'] .notes,
-:root[data-theme='liquid-dark'] .notes {
+:root[data-theme='liquid'] .notes-list,
+:root[data-theme='liquid-dark'] .notes-list {
   border-top: 1px solid rgba(139, 92, 246, 0.2);
 }
 
-.notes h4 {
+.notes-list h4 {
   margin: 0;
   font-size: 13px;
   letter-spacing: 0.05em;
@@ -1685,7 +1686,12 @@ button:active {
   gap: 8px;
 }
 
-.notes h4::before {
+:root[data-theme='liquid'] .notes-list h4,
+:root[data-theme='liquid-dark'] .notes-list h4 {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.notes-list h4::before {
   content: '';
   width: 8px;
   height: 8px;
@@ -1694,83 +1700,81 @@ button:active {
   box-shadow: 0 0 8px var(--accent);
 }
 
-.notes ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 10px;
-}
-
-.notes li {
+.note-item {
   border: 1px solid var(--note-line);
   background: var(--note-surface);
   border-radius: 14px;
   padding: 14px 16px;
   transition: all 200ms ease;
-  position: relative;
-}
-
-:root[data-theme='liquid'] .notes li,
-:root[data-theme='liquid-dark'] .notes li {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-}
-
-:root[data-theme='liquid-dark'] .notes li {
-  background: rgba(40, 40, 80, 0.4);
-  border: 1px solid rgba(167, 139, 250, 0.2);
-}
-
-.notes li:hover {
-  transform: translateX(4px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-}
-
-:root[data-theme='liquid'] .notes li:hover,
-:root[data-theme='liquid-dark'] .notes li:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(139, 92, 246, 0.3);
-  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.15);
-}
-
-.note-item {
   display: flex;
   align-items: flex-start;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
-.note-content {
+:root[data-theme='liquid'] .note-item,
+:root[data-theme='liquid-dark'] .note-item {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+:root[data-theme='liquid-dark'] .note-item {
+  border: 1px solid rgba(167, 139, 250, 0.15);
+}
+
+.note-item:hover {
+  transform: translateX(4px);
+}
+
+:root[data-theme='liquid'] .note-item:hover,
+:root[data-theme='liquid-dark'] .note-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(139, 92, 246, 0.25);
+}
+
+.note-text {
   flex: 1;
-}
-
-.note-content p {
-  margin: 0;
   font-size: 14px;
   line-height: 1.5;
+  word-break: break-word;
 }
 
-.note-content small {
-  display: block;
-  margin-top: 8px;
-  color: var(--muted);
+:root[data-theme='liquid'] .note-text,
+:root[data-theme='liquid-dark'] .note-text {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.note-meta {
+  width: 100%;
   font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
 }
 
-.note-actions {
+:root[data-theme='liquid'] .note-meta,
+:root[data-theme='liquid-dark'] .note-meta {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.note-btns {
   display: flex;
   gap: 6px;
   opacity: 0;
   transition: opacity 200ms ease;
 }
 
-.notes li:hover .note-actions {
+.note-item:hover .note-btns {
   opacity: 1;
 }
 
-.note-action {
+:root[data-theme='liquid'] .note-btns,
+:root[data-theme='liquid-dark'] .note-btns {
+  opacity: 1;
+}
+
+.note-btn {
   width: 32px;
   height: 32px;
   padding: 0;
@@ -1781,88 +1785,88 @@ button:active {
   background: var(--surface-soft);
   border: 1px solid var(--line);
   box-shadow: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 200ms ease;
 }
 
-:root[data-theme='liquid'] .note-action,
-:root[data-theme='liquid-dark'] .note-action {
-  background: rgba(255, 255, 255, 0.2);
+:root[data-theme='liquid'] .note-btn,
+:root[data-theme='liquid-dark'] .note-btn {
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.note-action svg {
-  width: 14px;
-  height: 14px;
+:root[data-theme='liquid-dark'] .note-btn {
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(167, 139, 250, 0.3);
 }
 
-.note-action:hover {
+.note-btn:hover {
   transform: scale(1.1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.note-action.edit {
+:root[data-theme='liquid'] .note-btn:hover,
+:root[data-theme='liquid-dark'] .note-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.note-btn.save {
   color: var(--accent);
 }
 
-.note-action.edit:hover {
+.note-btn.save:hover {
   background: rgba(139, 92, 246, 0.2);
   border-color: var(--accent);
-  box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
 }
 
-.note-action.delete {
+.note-btn.cancel,
+.note-btn.del {
   color: var(--danger);
 }
 
-.note-action.delete:hover {
+.note-btn.cancel:hover,
+.note-btn.del:hover {
   background: rgba(239, 68, 68, 0.2);
   border-color: var(--danger);
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
 }
 
-.note-edit {
+.note-input {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.note-edit input {
-  width: 100%;
   padding: 10px 14px;
   font-size: 14px;
-}
-
-.note-edit-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.note-edit-actions button {
-  padding: 8px 16px;
-  font-size: 13px;
-}
-
-.save-btn {
-  background: linear-gradient(135deg, var(--accent), var(--accent-3));
-}
-
-.cancel-btn {
+  border-radius: 8px;
+  border: 1px solid var(--line);
   background: var(--surface-soft);
   color: var(--text);
-  box-shadow: none;
+  outline: none;
+  transition: border-color 200ms ease;
 }
 
-.notes li p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
+.note-input:focus {
+  border-color: var(--accent);
 }
 
-.notes li small {
-  display: block;
-  margin-top: 8px;
-  color: var(--muted);
-  font-size: 12px;
+:root[data-theme='liquid'] .note-input,
+:root[data-theme='liquid-dark'] .note-input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme='liquid'] .note-input:focus,
+:root[data-theme='liquid-dark'] .note-input:focus {
+  border-color: rgba(139, 92, 246, 0.6);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+:root[data-theme='liquid'] .note-input::placeholder,
+:root[data-theme='liquid-dark'] .note-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .empty {

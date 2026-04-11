@@ -108,35 +108,25 @@ function deleteNote(checkinId) {
       <button type="submit">Добавить прогресс</button>
     </form>
 
-    <div v-if="props.notes.length" class="notes">
+    <div v-if="props.notes.length" class="notes-list">
       <h4>Пометки</h4>
-      <ul>
-        <li v-for="noteItem in props.notes" :key="noteItem.id" class="note-item">
-          <template v-if="editingNoteId === noteItem.id">
-            <div class="note-edit">
-              <input v-model="editingNoteText" type="text" @keyup.enter="saveEditNote(noteItem)" @keyup.escape="cancelEditNote" />
-              <div class="note-edit-actions">
-                <button class="save-btn" type="button" @click="saveEditNote(noteItem)">Сохранить</button>
-                <button class="cancel-btn" type="button" @click="cancelEditNote">Отмена</button>
-              </div>
-            </div>
-          </template>
-          <template v-else>
-            <div class="note-content">
-              <p>{{ noteItem.note }}</p>
-              <small>{{ formatDate(noteItem.createdAt) }} • {{ noteItem.amount > 0 ? '+' : '' }}{{ noteItem.amount }}</small>
-            </div>
-            <div class="note-actions">
-              <button class="note-action edit" type="button" @click="startEditNote(noteItem)" title="Редактировать">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
-              <button class="note-action delete" type="button" @click="deleteNote(noteItem.id)" title="Удалить">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-              </button>
-            </div>
-          </template>
-        </li>
-      </ul>
+      <div v-for="noteItem in props.notes" :key="noteItem.id" class="note-item">
+        <template v-if="editingNoteId === noteItem.id">
+          <input class="note-input" v-model="editingNoteText" type="text" @keyup.enter="saveEditNote(noteItem)" @keyup.escape="cancelEditNote" />
+          <div class="note-btns">
+            <button class="note-btn save" type="button" @click="saveEditNote(noteItem)">✓</button>
+            <button class="note-btn cancel" type="button" @click="cancelEditNote">✕</button>
+          </div>
+        </template>
+        <template v-else>
+          <span class="note-text">{{ noteItem.note }}</span>
+          <span class="note-meta">{{ formatDate(noteItem.createdAt) }} • +{{ noteItem.amount }}</span>
+          <div class="note-btns">
+            <button class="note-btn" type="button" @click="startEditNote(noteItem)" title="Ред.">✎</button>
+            <button class="note-btn del" type="button" @click="deleteNote(noteItem.id)" title="Удал.">✕</button>
+          </div>
+        </template>
+      </div>
     </div>
   </article>
 </template>
