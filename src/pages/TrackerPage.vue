@@ -85,25 +85,32 @@ const summaryCards = computed(() => [
 
 const sectionSubsections = {
   core: [
-    { id: 'server', label: 'Сервер' },
-    { id: 'appearance', label: 'Внешний вид' },
-    { id: 'quick', label: 'Быстрый старт' },
+    { id: 'server', label: 'Сервер', icon: 'globe' },
+    { id: 'appearance', label: 'Внешний вид', icon: 'palette' },
+    { id: 'quick', label: 'Быстрый старт', icon: 'zap' },
   ],
   sync: [
-    { id: 'status', label: 'Статус' },
-    { id: 'manual', label: 'Ручной режим' },
+    { id: 'status', label: 'Статус', icon: 'wifi' },
+    { id: 'manual', label: 'Ручной режим', icon: 'refresh' },
   ],
   data: [
-    { id: 'backup', label: 'Бэкап' },
-    { id: 'storage', label: 'Хранилище' },
+    { id: 'backup', label: 'Бэкап', icon: 'download' },
+    { id: 'storage', label: 'Хранилище', icon: 'database' },
   ],
   security: [
-    { id: 'auth', label: 'Вход' },
-    { id: 'password', label: 'Пароль' },
+    { id: 'auth', label: 'Вход', icon: 'log-in' },
+    { id: 'password', label: 'Пароль', icon: 'lock' },
   ],
 };
 
 const activeSubsections = computed(() => sectionSubsections[settingsSection.value] || []);
+
+const sectionIcons = {
+  core: 'settings',
+  sync: 'refresh-cw',
+  data: 'hard-drive',
+  security: 'shield',
+};
 
 function applyTheme(nextTheme) {
   theme.value = nextTheme;
@@ -1093,7 +1100,7 @@ onBeforeUnmount(() => {
     <section class="hero app-topbar">
       <div class="brand">
         <span class="brand-dot" aria-hidden="true"></span>
-        <p class="brand-title">Obaika Tracker <small>v0.1.3</small></p>
+        <p class="brand-title">Obaika Tracker <small>v0.1.4</small></p>
       </div>
 
       <div class="hero-actions">
@@ -1132,10 +1139,23 @@ onBeforeUnmount(() => {
       <section class="settings-modal card">
         <aside class="settings-sidebar">
           <p>Настройки</p>
-          <button :class="{ active: settingsSection === 'core' }" type="button" @click="setSettingsSection('core')">Основные</button>
-          <button :class="{ active: settingsSection === 'sync' }" type="button" @click="setSettingsSection('sync')">Синхронизация</button>
-          <button :class="{ active: settingsSection === 'data' }" type="button" @click="setSettingsSection('data')">Данные</button>
-          <button :class="{ active: settingsSection === 'security' }" type="button" @click="setSettingsSection('security')">Безопасность</button>
+          <button :class="{ active: settingsSection === 'core' }" type="button" @click="setSettingsSection('core')">
+            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Основные
+          </button>
+          <button :class="{ active: settingsSection === 'sync' }" type="button" @click="setSettingsSection('sync')">
+            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Синхронизация
+          </button>
+          <button :class="{ active: settingsSection === 'data' }" type="button" @click="setSettingsSection('data')">
+            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            Данные
+          </button>
+          <button :class="{ active: settingsSection === 'security' }" type="button" @click="setSettingsSection('security')">
+            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Безопасность
+          </button>
+          <div class="settings-version">v0.1.4</div>
         </aside>
 
         <div class="settings-content">
@@ -1153,6 +1173,15 @@ onBeforeUnmount(() => {
               type="button"
               @click="settingsSubsection = sub.id"
             >
+              <svg v-if="sub.icon === 'globe'" class="subtab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <svg v-if="sub.icon === 'palette'" class="subtab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="0.5"/><circle cx="17.5" cy="10.5" r="0.5"/><circle cx="8.5" cy="7.5" r="0.5"/><circle cx="6.5" cy="12.5" r="0.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z"/></svg>
+              <svg v-if="sub.icon === 'zap'" class="subtab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <svg v-if="sub.icon === 'wifi'" class="subtab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+              <svg v-if="sub.icon === 'refresh'" class="subtab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              <svg v-if="sub.icon === 'download'" class="subtab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <svg v-if="sub.icon === 'database'" class="subtab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+              <svg v-if="sub.icon === 'log-in'" class="subtab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+              <svg v-if="sub.icon === 'lock'" class="subtab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               {{ sub.label }}
             </button>
           </div>
